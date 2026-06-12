@@ -1,0 +1,419 @@
+{% extends 'base.html' %}
+{% block title %}SkyCheck — Live Weather{% endblock %}
+
+{% block extra_style %}
+/* Search card */
+.search-card { padding: 1.25rem; margin-bottom: 1.25rem; }
+.search-form { display: flex; gap: 0.75rem; }
+.search-input {
+  flex: 1;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+  color: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-input::placeholder { color: rgba(255,255,255,0.35); }
+.search-input:focus { border-color: var(--accent); }
+.search-btn {
+  background: var(--accent);
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 1.4rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0d1b3e;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+}
+.search-btn:hover { opacity: 0.88; }
+
+/* Error */
+.error-banner {
+  background: rgba(248,113,113,0.15);
+  border: 1px solid rgba(248,113,113,0.4);
+  border-radius: 12px;
+  padding: 0.85rem 1.1rem;
+  font-size: 0.875rem;
+  color: #fca5a5;
+  margin-bottom: 1.25rem;
+}
+
+/* Current weather card */
+.weather-card { padding: 1.75rem; margin-bottom: 1.25rem; animation: fadeUp 0.35s ease; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+
+.weather-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+.city-name  { font-size: 1.7rem; font-weight: 700; line-height: 1.2; }
+.city-meta  { font-size: 0.85rem; color: var(--muted); margin-top: 0.2rem; }
+.weather-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; }
+.weather-icon { width: 72px; height: 72px; filter: drop-shadow(0 0 6px rgba(96,184,255,0.4)); }
+.fav-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1rem;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: background 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.fav-btn:hover { background: rgba(255,255,255,0.1); }
+.fav-btn.active { border-color: gold; color: gold; }
+
+.temp-hero { font-size: 4.5rem; font-weight: 300; letter-spacing: -3px; line-height: 1; }
+.temp-hero span { font-size: 1.4rem; font-weight: 400; color: var(--muted); }
+.weather-desc { color: var(--muted); font-size: 1rem; margin: 0.4rem 0; }
+.temp-range  { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem; }
+.temp-range strong { color: rgba(255,255,255,0.85); }
+.feels-like  { font-size: 0.875rem; color: var(--muted); margin-bottom: 1.5rem; }
+.feels-like strong { color: rgba(255,255,255,0.85); }
+
+.stats-divider { border-top: 1px solid rgba(255,255,255,0.12); padding-top: 1.25rem; }
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+@media (min-width: 480px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
+.stat-item {
+  background: rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 0.9rem 0.6rem;
+  text-align: center;
+}
+.stat-icon  { font-size: 1.4rem; margin-bottom: 0.3rem; }
+.stat-value { font-size: 1rem; font-weight: 600; }
+.stat-label { font-size: 0.7rem; color: var(--muted); margin-top: 0.15rem; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Charts section */
+.section-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+@media (min-width: 600px) { .charts-grid { grid-template-columns: 1fr 1fr; } }
+.chart-card { padding: 1.25rem; }
+.chart-card canvas { max-height: 180px; }
+.chart-label { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.75rem; font-weight: 500; }
+
+/* 5-day forecast */
+.forecast-card { padding: 1.5rem; margin-bottom: 1.25rem; }
+.forecast-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.forecast-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.75rem;
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+.fc-day   { flex: 2; font-weight: 500; }
+.fc-icon  { flex: 0 0 36px; }
+.fc-icon img { width: 36px; height: 36px; }
+.fc-desc  { flex: 3; color: var(--muted); font-size: 0.8rem; }
+.fc-temps { flex: 2; text-align: right; }
+.fc-high  { font-weight: 600; }
+.fc-low   { color: var(--muted); font-size: 0.85rem; margin-left: 0.4rem; }
+
+/* Recent searches */
+.recent-card { padding: 1.1rem 1.4rem; }
+.recent-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.recent-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 50px;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.8);
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: background 0.2s;
+}
+.recent-btn:hover { background: rgba(255,255,255,0.18); }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 3.5rem 1rem; }
+.empty-state .big { font-size: 3.5rem; display: block; margin-bottom: 1rem; }
+.empty-state h2 { font-size: 1.2rem; font-weight: 600; margin-bottom: 0.4rem; }
+.empty-state p  { font-size: 0.875rem; color: var(--muted); }
+{% endblock %}
+
+{% block content %}
+
+<!-- Search -->
+<div class="card search-card">
+  <form method="POST" class="search-form">
+    {% csrf_token %}
+    <input
+      type="text"
+      name="city"
+      class="search-input"
+      placeholder="Enter city name… e.g. Chennai, London, Tokyo"
+      value="{% if weather_data %}{{ weather_data.city }}{% endif %}"
+      autofocus
+    />
+    <button type="submit" class="search-btn">🔍 Search</button>
+  </form>
+</div>
+
+<!-- Error -->
+{% if error_message %}
+<div class="error-banner">⚠️ {{ error_message }}</div>
+{% endif %}
+
+{% if weather_data %}
+
+<!-- Current Weather -->
+<div class="card weather-card">
+  <div class="weather-top">
+    <div>
+      <div class="city-name">{{ weather_data.city }}</div>
+      <div class="city-meta">📍 {{ weather_data.country }}</div>
+    </div>
+    <div class="weather-right">
+      <img class="weather-icon" src="{{ weather_data.icon }}" alt="{{ weather_data.description }}" />
+      {% if user.is_authenticated %}
+      <button
+        class="fav-btn {% if is_favorite %}active{% endif %}"
+        id="fav-btn"
+        onclick="toggleFavorite('{{ weather_data.city }}', '{{ weather_data.country }}')"
+      >
+        {% if is_favorite %}⭐ Saved{% else %}☆ Save{% endif %}
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="temp-hero">{{ weather_data.temperature }}<span>°C</span></div>
+  <div class="weather-desc">{{ weather_data.emoji }} {{ weather_data.description }}</div>
+  <div class="temp-range">H: <strong>{{ weather_data.temp_max }}°C</strong> · L: <strong>{{ weather_data.temp_min }}°C</strong></div>
+  <div class="feels-like">🌡 Feels like <strong>{{ weather_data.feels_like }}°C</strong></div>
+
+  <div class="stats-divider">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-icon">💧</div>
+        <div class="stat-value">{{ weather_data.humidity }}%</div>
+        <div class="stat-label">Humidity</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-icon">💨</div>
+        <div class="stat-value">{{ weather_data.wind_speed }} km/h</div>
+        <div class="stat-label">Wind</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-icon">📊</div>
+        <div class="stat-value">{{ weather_data.pressure }} hPa</div>
+        <div class="stat-label">Pressure</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-icon">👁</div>
+        <div class="stat-value">{{ weather_data.visibility }} km</div>
+        <div class="stat-label">Visibility</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if forecast_data %}
+
+<!-- Charts row -->
+<div class="charts-grid">
+  <div class="card chart-card">
+    <div class="chart-label">🌡 Temperature (next 24 hrs)</div>
+    <canvas id="tempChart"></canvas>
+  </div>
+  <div class="card chart-card">
+    <div class="chart-label">💧 Humidity (next 24 hrs)</div>
+    <canvas id="humChart"></canvas>
+  </div>
+</div>
+
+<!-- 5-Day Forecast -->
+<div class="card forecast-card">
+  <div class="section-title">5-Day Forecast</div>
+  <div class="forecast-list">
+    {% for day in forecast_data.daily %}
+    <div class="forecast-row">
+      <div class="fc-day">{{ day.day }}</div>
+      <div class="fc-icon"><img src="{{ day.icon }}" alt="{{ day.desc }}" /></div>
+      <div class="fc-desc">{{ day.emoji }} {{ day.desc }}</div>
+      <div class="fc-temps">
+        <span class="fc-high">{{ day.high }}°</span>
+        <span class="fc-low">{{ day.low }}°</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% endif %}
+
+{% else %}
+<div class="empty-state">
+  <span class="big">🌍</span>
+  <h2>Search for a city to get started</h2>
+  <p>Type any city name above to see live weather, forecasts and charts</p>
+</div>
+{% endif %}
+
+<!-- Recent Searches -->
+{% if recent_searches %}
+<div class="card recent-card">
+  <div class="section-title">Recent Searches</div>
+  <div class="recent-list">
+    {% for s in recent_searches %}
+    <form method="POST" style="display:inline;">
+      {% csrf_token %}
+      <input type="hidden" name="city" value="{{ s.city_name }}" />
+      <button type="submit" class="recent-btn">
+        {{ s.city_name }} {% if s.temperature %}· {{ s.temperature|floatformat:0 }}°{% endif %}
+      </button>
+    </form>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+{% if forecast_data %}
+<script>
+const labels   = {{ forecast_data.chart_labels|safe }};
+const temps    = {{ forecast_data.chart_temps|safe }};
+const humidity = {{ forecast_data.chart_humidity|safe }};
+
+const chartDefaults = {
+  responsive: true,
+  maintainAspectRatio: true,
+  plugins: { legend: { display: false } },
+  scales: {
+    x: {
+      grid: { color: 'rgba(255,255,255,0.07)' },
+      ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 11 } }
+    },
+    y: {
+      grid: { color: 'rgba(255,255,255,0.07)' },
+      ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 11 } }
+    }
+  }
+};
+
+// Temperature line chart
+new Chart(document.getElementById('tempChart'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [{
+      data: temps,
+      borderColor: '#60b8ff',
+      backgroundColor: 'rgba(96,184,255,0.12)',
+      fill: true,
+      tension: 0.4,
+      pointBackgroundColor: '#60b8ff',
+      pointRadius: 4,
+      borderWidth: 2,
+    }]
+  },
+  options: {
+    ...chartDefaults,
+    plugins: {
+      ...chartDefaults.plugins,
+      tooltip: {
+        callbacks: { label: ctx => `${ctx.parsed.y}°C` }
+      }
+    },
+    scales: {
+      ...chartDefaults.scales,
+      y: { ...chartDefaults.scales.y, ticks: { ...chartDefaults.scales.y.ticks, callback: v => v + '°' } }
+    }
+  }
+});
+
+// Humidity bar chart
+new Chart(document.getElementById('humChart'), {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [{
+      data: humidity,
+      backgroundColor: 'rgba(167,139,250,0.55)',
+      borderColor: '#a78bfa',
+      borderWidth: 1,
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    ...chartDefaults,
+    plugins: {
+      ...chartDefaults.plugins,
+      tooltip: {
+        callbacks: { label: ctx => `${ctx.parsed.y}%` }
+      }
+    },
+    scales: {
+      ...chartDefaults.scales,
+      y: {
+        ...chartDefaults.scales.y,
+        min: 0, max: 100,
+        ticks: { ...chartDefaults.scales.y.ticks, callback: v => v + '%' }
+      }
+    }
+  }
+});
+</script>
+{% endif %}
+
+{% if user.is_authenticated %}
+<script>
+function toggleFavorite(city, country) {
+  const btn = document.getElementById('fav-btn');
+  const formData = new FormData();
+  formData.append('city', city);
+  formData.append('country', country);
+  formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+  fetch("{% url 'toggle_favorite' %}", {
+    method: 'POST',
+    body: formData,
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.status === 'added') {
+      btn.textContent = '⭐ Saved';
+      btn.classList.add('active');
+    } else {
+      btn.textContent = '☆ Save';
+      btn.classList.remove('active');
+    }
+  })
+  .catch(() => alert('Could not update favourite. Please try again.'));
+}
+</script>
+{% endif %}
+{% endblock %}

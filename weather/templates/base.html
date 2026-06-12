@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SkyCheck — free real-time weather for any city. 5-day forecast, charts, and more." />
+  <meta name="keywords" content="weather, forecast, live weather, temperature, SkyCheck" />
+  <meta property="og:title" content="SkyCheck Weather" />
+  <meta property="og:description" content="Real-time weather and 5-day forecast for any city." />
+  <meta name="robots" content="index, follow" />
+  <title>{% block title %}SkyCheck{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --sky-top: #0d1b3e;
+      --sky-mid: #1a3a6e;
+      --sky-low: #2d6fa8;
+      --glass:   rgba(255,255,255,0.08);
+      --glass-b: rgba(255,255,255,0.15);
+      --accent:  #60b8ff;
+      --accent2: #a78bfa;
+      --danger:  #f87171;
+      --success: #4ade80;
+      --text:    #ffffff;
+      --muted:   rgba(255,255,255,0.55);
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(160deg, var(--sky-top) 0%, var(--sky-mid) 50%, var(--sky-low) 100%);
+      background-attachment: fixed;
+      color: var(--text);
+    }
+
+    /* ── Navbar ── */
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(13,27,62,0.7);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--glass-b);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-logo { font-size: 1.3rem; font-weight: 700; text-decoration: none; color: #fff; }
+    .nav-logo span { color: var(--accent); }
+    .nav-links { display: flex; align-items: center; gap: 0.5rem; }
+    .nav-link {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      padding: 0.4rem 0.85rem;
+      border-radius: 8px;
+      transition: background 0.2s, color 0.2s;
+      font-weight: 500;
+    }
+    .nav-link:hover { background: var(--glass); color: #fff; }
+    .nav-link.active { color: var(--accent); }
+    .nav-btn {
+      background: var(--accent);
+      color: #0d1b3e;
+      border-radius: 8px;
+      padding: 0.4rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .nav-btn:hover { opacity: 0.85; }
+    .nav-user {
+      font-size: 0.8rem;
+      color: var(--muted);
+      padding: 0.4rem 0.75rem;
+      background: var(--glass);
+      border: 1px solid var(--glass-b);
+      border-radius: 8px;
+    }
+
+    /* ── Page wrapper ── */
+    .page { max-width: 800px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+
+    /* ── Toast messages ── */
+    .messages-box { margin-bottom: 1rem; }
+    .toast {
+      padding: 0.75rem 1.1rem;
+      border-radius: 12px;
+      font-size: 0.875rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .toast.success { background: rgba(74,222,128,0.15); border: 1px solid rgba(74,222,128,0.3); color: #86efac; }
+    .toast.info    { background: rgba(96,184,255,0.15); border: 1px solid rgba(96,184,255,0.3); color: #93c5fd; }
+    .toast.error   { background: rgba(248,113,113,0.15); border: 1px solid rgba(248,113,113,0.3); color: #fca5a5; }
+
+    /* ── Glass card ── */
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--glass-b);
+      border-radius: 20px;
+      backdrop-filter: blur(12px);
+    }
+
+    /* ── Auth inputs (shared) ── */
+    .auth-input {
+      width: 100%;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      font-size: 0.95rem;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .auth-input::placeholder { color: rgba(255,255,255,0.35); }
+    .auth-input:focus { border-color: var(--accent); }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      width: 100%;
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      padding: 0.8rem;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #0d1b3e;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: opacity 0.2s;
+    }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-danger {
+      background: rgba(248,113,113,0.2);
+      border: 1px solid rgba(248,113,113,0.4);
+      color: #fca5a5;
+      border-radius: 8px;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: background 0.2s;
+    }
+    .btn-danger:hover { background: rgba(248,113,113,0.35); }
+
+    {% block extra_style %}{% endblock %}
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="{% url 'home' %}" class="nav-logo">Sky<span>Check</span></a>
+  <div class="nav-links">
+    <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">🌤 Weather</a>
+    {% if user.is_authenticated %}
+      <a href="{% url 'favorites' %}" class="nav-link {% if request.resolver_match.url_name == 'favorites' %}active{% endif %}">⭐ Favorites</a>
+      <span class="nav-user">👤 {{ user.username }}</span>
+      <a href="{% url 'logout' %}" class="nav-link">Logout</a>
+    {% else %}
+      <a href="{% url 'login' %}"    class="nav-link">Login</a>
+      <a href="{% url 'register' %}" class="nav-btn">Sign Up</a>
+    {% endif %}
+  </div>
+</nav>
+
+<div class="page">
+  {% if messages %}
+  <div class="messages-box">
+    {% for msg in messages %}
+    <div class="toast {{ msg.tags }}">
+      {% if 'success' in msg.tags %}✅{% elif 'error' in msg.tags %}⚠️{% else %}ℹ️{% endif %}
+      {{ msg }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% block content %}{% endblock %}
+</div>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>
