@@ -52,6 +52,7 @@ OPENWEATHER_API_KEY = os.getenv('OPENWEATHER_API_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
+CSRF_TRUSTED_ORIGINS = ['https://skycheck-production.up.railway.app']
 
 
 # Application definition
