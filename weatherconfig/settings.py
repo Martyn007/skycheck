@@ -14,7 +14,15 @@ from pathlib import Path
 from django.contrib.messages import constants as message_constants
 import os
 from dotenv import load_dotenv
+import dj_database_url
 load_dotenv()
+
+DATABASES = {
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,
+    )
+}
 
 MESSAGE_TAGS = {
     message_constants.DEBUG:   'info',
