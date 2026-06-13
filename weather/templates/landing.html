@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}SkyCheck — Real-Time Weather{% endblock %}
+
+{% block extra_style %}
+.landing {
+  text-align: center;
+  padding: 5rem 1rem 3rem;
+}
+.landing-emoji {
+  font-size: 5rem;
+  display: block;
+  margin-bottom: 1.5rem;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-12px); }
+}
+.landing h1 {
+  font-size: 2.8rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+.landing h1 span { color: var(--accent); }
+.landing p {
+  font-size: 1.1rem;
+  color: var(--muted);
+  max-width: 480px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.6;
+}
+.landing-btns {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 4rem;
+}
+.btn-big {
+  padding: 0.85rem 2rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.2s, transform 0.15s;
+  font-family: 'Inter', sans-serif;
+}
+.btn-big:hover { opacity: 0.88; transform: translateY(-2px); }
+.btn-big.primary { background: var(--accent); color: #0d1b3e; }
+.btn-big.outline {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff;
+}
+
+/* Features grid */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 3rem;
+}
+.feature-card {
+  padding: 1.5rem 1.25rem;
+  border-radius: 18px;
+  text-align: center;
+}
+.feature-icon { font-size: 2rem; margin-bottom: 0.75rem; display: block; }
+.feature-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.4rem; }
+.feature-desc  { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+
+.landing-footer {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.25);
+  margin-top: 2rem;
+}
+{% endblock %}
+
+{% block content %}
+<div class="landing">
+  <span class="landing-emoji">⛅</span>
+  <h1>Real-Time Weather<br/>for <span>Any City</span> on Earth</h1>
+  <p>Get live temperature, 5-day forecasts, Air Quality Index, and beautiful charts — all in one place.</p>
+
+  <div class="landing-btns">
+    <a href="{% url 'register' %}" class="btn-big primary">🚀 Get Started Free</a>
+    <a href="{% url 'login' %}"    class="btn-big outline">Sign In</a>
+  </div>
+
+  <div class="features">
+    <div class="card feature-card">
+      <span class="feature-icon">🌡️</span>
+      <div class="feature-title">Live Weather</div>
+      <div class="feature-desc">Real-time temperature, humidity, wind, pressure and visibility.</div>
+    </div>
+    <div class="card feature-card">
+      <span class="feature-icon">📅</span>
+      <div class="feature-title">5-Day Forecast</div>
+      <div class="feature-desc">Plan ahead with detailed daily high & low forecasts.</div>
+    </div>
+    <div class="card feature-card">
+      <span class="feature-icon">🌿</span>
+      <div class="feature-title">Air Quality Index</div>
+      <div class="feature-desc">PM2.5, CO, NO2, O3 levels with health recommendations.</div>
+    </div>
+    <div class="card feature-card">
+      <span class="feature-icon">📊</span>
+      <div class="feature-title">Live Charts</div>
+      <div class="feature-desc">Temperature and humidity charts for the next 24 hours.</div>
+    </div>
+    <div class="card feature-card">
+      <span class="feature-icon">⭐</span>
+      <div class="feature-title">Favourite Cities</div>
+      <div class="feature-desc">Save your favourite cities for quick one-click access.</div>
+    </div>
+    <div class="card feature-card">
+      <span class="feature-icon">🔒</span>
+      <div class="feature-title">Free Account</div>
+      <div class="feature-desc">Create a free account and access all features instantly.</div>
+    </div>
+  </div>
+
+  <div class="landing-footer">
+    Powered by OpenWeatherMap API · SkyCheck Weather
+  </div>
+</div>
+{% endblock %}
